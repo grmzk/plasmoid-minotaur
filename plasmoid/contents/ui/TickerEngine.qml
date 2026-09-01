@@ -255,6 +255,49 @@ Item {
                     market.display_base = market.base
                     market.display_target = market.target
                 }
+            },
+            "Kraken": {
+                url: 'https://api.kraken.com/0/public/Ticker?pair={target}{base}',
+                tradeUrl: 'https://pro.kraken.com/app/trade/{target_lower}-{base_lower}',
+                parser: function(results) {
+                    const data = results[0];
+
+                    if (!data || (data.error && data.error.length > 0) || !data.result) {
+                        console.log('Kraken returned unsuccessful:', data && data.error);
+                        market_value.update_failed = true;
+                        return;
+                    }
+
+                    const pairKeys = Object.keys(data.result);
+                    if (pairKeys.length === 0) {
+                        console.log('Kraken returned empty result');
+                        market_value.update_failed = true;
+                        return;
+                    }
+
+                    const ticker = data.result[pairKeys[0]];
+                    if (!ticker || !ticker.c || !ticker.c[0]) {
+                        console.log('Kraken returned invalid ticker data');
+                        market_value.update_failed = true;
+                        return;
+                    }
+
+                    const open = parseFloat(ticker.o);
+                    const last = parseFloat(ticker.c[0]);
+
+                    market_value.last = ticker.c[0]
+                    market_value.high = ticker.h[1] || ticker.h[0]
+                    market_value.low = ticker.l[1] || ticker.l[0]
+                    market_value.day_change = open !== 0 ? ((last - open) / open) * 100 : 0
+                    market_value.last_update = formatLastUpdate(new Date())
+
+                    market_value.update_failed = false
+
+                    market.display_exchange = 'Kraken'
+
+                    market.display_base = market.base
+                    market.display_target = market.target
+                }
             }
         }
     }
@@ -273,7 +316,9 @@ Item {
             if (exchangeData && exchangeData.tradeUrl) {
                 return exchangeData.tradeUrl
                     .replace('{base}', market.base)
-                    .replace('{target}', market.target);
+                    .replace('{target}', market.target)
+                    .replace('{base_lower}', (market.base || '').toLowerCase())
+                    .replace('{target_lower}', (market.target || '').toLowerCase());
             }
             return "";
         }
