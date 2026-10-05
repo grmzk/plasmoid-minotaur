@@ -10,12 +10,7 @@ Item {
     property var retrieverRef: retriever  // Expose timer for UI components
 
     function formatLastUpdate(date) {
-        try {
-            return Qt.formatDateTime(date, 'h:mm:ss AP t');
-        } catch (error) {
-            console.log('Falling back to default time formatting:', error);
-            return date.toLocaleTimeString();
-        }
+        return Qt.formatDateTime(date, 'dd.MM.yyyy HH:mm');
     }
 
     Component.onCompleted: function () {
@@ -95,7 +90,10 @@ Item {
             }
 
             const processedUrls = urls.map(
-                (url) => url.replace('{base}', market.base).replace('{target}', market.target)
+                (url) => url.replace('{base}', market.base)
+                    .replace('{target}', market.target)
+                    .replace('{base_lower}', market.base.toLowerCase())
+                    .replace('{target_lower}', market.target.toLowerCase())
             );
 
             Promise.all(processedUrls.map(
@@ -251,6 +249,36 @@ Item {
                     market_value.update_failed = false
 
                     market.display_exchange = 'Gate.io'
+
+                    market.display_base = market.base
+                    market.display_target = market.target
+                }
+            },
+            "HTX": {
+                url: 'https://api.htx.com/market/detail/merged?symbol={target_lower}{base_lower}',
+                tradeUrl: 'https://www.htx.com/trade/{target_lower}_{base_lower}',
+                parser: function(results) {
+                    const data = results[0];
+
+                    if (!data || data.status !== 'ok' || !data.tick || !data.tick.close || !data.tick.open) {
+                        console.log('HTX returned unsuccessful');
+                        market_value.update_failed = true;
+                        return;
+                    }
+
+                    const ticker = data.tick;
+                    const open = parseFloat(ticker.open);
+                    const last = parseFloat(ticker.close);
+
+                    market_value.last = last
+                    market_value.high = ticker.high
+                    market_value.low = ticker.low
+                    market_value.day_change = open !== 0 ? ((last - open) / open) * 100 : 0
+                    market_value.last_update = formatLastUpdate(new Date())
+
+                    market_value.update_failed = false
+
+                    market.display_exchange = 'HTX'
 
                     market.display_base = market.base
                     market.display_target = market.target
