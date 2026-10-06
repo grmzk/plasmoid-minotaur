@@ -60,7 +60,7 @@ Item {
                         text: market.display_base + '-' + market.display_target
                         elide: Text.ElideRight
                         font.weight: Font.Bold
-                        font.pointSize: 7
+                        font.pointSize: 9
                     }
                 }
 

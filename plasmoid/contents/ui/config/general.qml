@@ -13,6 +13,21 @@ Item {
     property alias cfg_target: target_field.text
     property alias cfg_interval: interval_field.value
     property alias cfg_showTimer: show_timer_check.checked
+    property alias cfg_backgroundOpacity: background_opacity_value.value
+
+    onCfg_backgroundOpacityChanged: {
+        if (!background_opacity_slider.pressed) {
+            background_opacity_slider.value = cfg_backgroundOpacity;
+        }
+    }
+
+    SpinBox {
+        id: background_opacity_value
+        visible: false
+        from: 0
+        to: 100
+        value: 80
+    }
 
     GridLayout {
         anchors.left: parent.left
@@ -88,6 +103,34 @@ Item {
 
         CheckBox {
             id: show_timer_check
+        }
+
+        Label {
+            text: "Background Opacity"
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+
+            Slider {
+                id: background_opacity_slider
+                Layout.fillWidth: true
+                from: 0
+                to: 100
+                stepSize: 1
+                snapMode: Slider.SnapAlways
+                Component.onCompleted: value = cfg_backgroundOpacity
+                onValueChanged: {
+                    const opacity = Math.round(value);
+                    if (cfg_backgroundOpacity !== opacity) {
+                        cfg_backgroundOpacity = opacity;
+                    }
+                }
+            }
+
+            Label {
+                text: `${Math.round(background_opacity_slider.value)}%`
+            }
         }
     }
 }

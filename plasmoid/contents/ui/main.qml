@@ -11,7 +11,7 @@ PlasmoidItem {
     Rectangle {
         anchors.fill: parent
         color: Kirigami.Theme.backgroundColor
-        opacity: 0.8
+        opacity: plasmoid.configuration.backgroundOpacity / 100
         z: -1
     }
 

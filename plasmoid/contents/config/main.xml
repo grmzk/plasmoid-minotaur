@@ -26,5 +26,9 @@
       <label>Show Timer</label>
       <default>true</default>
     </entry>
+    <entry name="backgroundOpacity" type="Int">
+      <label>Background Opacity</label>
+      <default>80</default>
+    </entry>
   </group>
 </kcfg>
